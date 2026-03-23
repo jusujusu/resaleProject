@@ -25,27 +25,32 @@ repositories {
 }
 
 dependencies {
-    // JPA(Java Persistence API) 사용을 위한 Spring Boot Starter - 데이터베이스 ORM 기능 제공
+    // JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    // Spring MVC 웹 애플리케이션 개발을 위한 Starter - RESTful API 개발에 필요한 의존성 포함
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+    // Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
     // Lombok 라이브러리 - 컴파일 시점에 getter, setter, toString 등 자동 생성 (컴파일 시에만 필요)
     compileOnly 'org.projectlombok:lombok'
-    // Spring Boot DevTools - 코드 변경 시 자동으로 서버 재시작 등 개발 편의 기능 제공
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    // MySQL JDBC 드라이버 - MySQL 데이터베이스 연결을 위한 런타임 의존성
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    // Lombok 어노테이션 처리기 - 컴파일 시 Lombok 어노테이션을 처리하는 데 필요
     annotationProcessor 'org.projectlombok:lombok'
-    // JPA 관련 테스트를 위한 Spring Boot Test Starter - 데이터베이스 테스트 지원
-    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-    // 웹 MVC 관련 테스트를 위한 Spring Boot Test Starter - 컨트롤러 테스트 지원
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-    // JUnit 5 플랫폼 런처 - 테스트 실행을 위한 런타임 의존성
+
+    // Spring Boot DevTools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // MySQL JDBC 드라이버
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    //Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
     // dotenv-java 라이브러리 - .env 파일에서 환경 변수를 로드하여 시스템 속성으로 설정
     implementation 'io.github.cdimascio:dotenv-java:3.2.0'
-    // SpringDoc OpenAPI - Swagger UI 자동 생성 및 API 문서화를 위한 라이브러리
+
+    // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 }
 

@@ -1,0 +1,73 @@
+package com.example.back.entity;
+
+import com.example.back.user.entity.UserEntity;
+import jakarta.persistence.*;
+import lombok.*;
+
+/**
+ * 상품 엔티티
+ *
+ * @fileName : ProductEntity
+ * @since : 26. 3. 23.
+ */
+
+@Entity
+@Table(name = "products")
+@Getter
+@ToString(exclude = {"seller", "category"})
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ProductEntity extends BaseTimeEntity{
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;        // 식별자 (PK)
+
+    @Column(nullable = false, length = 100)
+    private String title; // 상품 제목
+
+    @Column(columnDefinition = "TEXT")
+    private String content; // 상품 상세 설명
+
+    @Column(nullable = false)
+    private Integer price; // 판매 가격
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProductStatus status; // 판매 상태
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id")
+    private UserEntity seller; // 판매자
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private CategoryEntity category; // 상품 카테고리
+
+    // -------------- 빌더 패턴 --------------
+    @Builder
+    public ProductEntity(String title, String content, Integer price, ProductStatus status, UserEntity seller, CategoryEntity category) {
+        this.title = title;
+        this.content = content;
+        this.price = price;
+        this.status = (status != null) ? status : ProductStatus.SALE;   // 기본은 SALE
+        this.seller = seller;
+        this.category = category;
+    }
+
+    // -------------- 비즈니스 로직 --------------
+    /*
+     * 상태 변경 메소드
+     * */
+    public void changeStatus(ProductStatus status) {
+        this.status = status;
+    }
+
+    /*
+     * 상품 수정 메소드
+     * */
+    public void updateProduct(String title, String content, Integer price) {
+        this.title = title;
+        this.content = content;
+        this.price = price;
+    }
+}
