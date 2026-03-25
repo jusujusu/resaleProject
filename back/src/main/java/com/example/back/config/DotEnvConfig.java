@@ -22,8 +22,7 @@ public class DotEnvConfig {
                 .load();
 
         //  만약 현재 경로에서 DB_URL을 못 찾았다면 (상위 폴더에서 실행 중일 가능성)
-        //    ./back (또는 ./backend) 폴더 안을 다시 찾아봅니다.
-        //    *로그를 보니 폴더명이 'back'으로 되어있으므로 "./back"을 사용하세요.
+        //    ./back 폴더 안을 다시 찾아봅니다.
         if (dotenv.get("DB_URL") == null) {
             dotenv = Dotenv.configure()
                     .directory("./back")
