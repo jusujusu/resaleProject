@@ -33,6 +33,9 @@ public class UserEntity extends BaseTimeEntity {
     @Column(nullable = false, length = 50)
     private String nickName; // 서비스 내에서 표시될 이름
 
+    @Column(nullable = false, length = 50)
+    private String name; // 가입시 필요한 이름
+
     @Column(nullable = false)
     private String address; // 기본 주소
 
@@ -46,11 +49,12 @@ public class UserEntity extends BaseTimeEntity {
 
     // -------------- 빌더 패턴 --------------
     @Builder
-    public UserEntity(String email, String password, String phoneNumber, String nickName, String address, String detailAddress, UserRole role) {
+    public UserEntity(String email, String password, String phoneNumber, String nickName, String name, String address, String detailAddress, UserRole role) {
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
         this.nickName = nickName;
+        this.name = name;
         this.address = address;
         this.detailAddress = detailAddress;
         this.role = (role != null) ? role : UserRole.USER;    // 기본값 USER

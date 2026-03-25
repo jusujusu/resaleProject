@@ -35,6 +35,9 @@ public class UserDto {
         
         @NotBlank(message = "닉네임은 필수 입력 값입니다.")
         private String nickName;
+
+        @NotBlank(message = "이름은 필수 입력 값입니다.")
+        private String name;
         
         @NotBlank(message = "주소는 필수 입력 값입니다.")
         private String address;
@@ -47,6 +50,7 @@ public class UserDto {
                     .password(password)
                     .phoneNumber(phoneNumber)
                     .nickName(nickName)
+                    .name(name)
                     .address(address)
                     .detailAddress(detailAddress)
                     .role(UserRole.USER)
@@ -111,6 +115,7 @@ public class UserDto {
         private String email;
         private String phoneNumber;
         private String nickName;
+        private String name;
         private String address;
         private String detailAddress;
         private UserRole role;
@@ -123,6 +128,7 @@ public class UserDto {
                     .email(entity.getEmail())
                     .phoneNumber(entity.getPhoneNumber())
                     .nickName(entity.getNickName())
+                    .name(entity.getName())
                     .address(entity.getAddress())
                     .detailAddress(entity.getDetailAddress())
                     .role(entity.getRole())
