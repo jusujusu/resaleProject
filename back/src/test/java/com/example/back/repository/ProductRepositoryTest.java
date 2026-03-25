@@ -52,7 +52,7 @@ public class ProductRepositoryTest {
                         .email(testEmail)
                         .password("1234")
                         .phoneNumber("010-0000-0000")
-                        .nickName("고정판매자")
+                        .nickname("고정판매자")
                         .address("부천시")
                         .detailAddress("오정구")
                         .role(UserRole.USER)
@@ -83,7 +83,7 @@ public class ProductRepositoryTest {
 
         log.info("등록된 상품 ID :{}, 제목: {}", savedProduct.getId(), savedProduct.getTitle());
         assertThat(savedProduct.getId()).isNotNull();
-        assertThat(savedProduct.getSeller().getNickName()).isEqualTo("고정판매자");
+        assertThat(savedProduct.getSeller().getNickname()).isEqualTo("고정판매자");
 
     }
 
@@ -114,7 +114,7 @@ public class ProductRepositoryTest {
                         product.getId(),
                         product.getTitle(),
                         product.getPrice(),
-                        product.getSeller().getNickName(),
+                        product.getSeller().getNickname(),
                         product.getCategory().getName()));
 
 

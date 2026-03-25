@@ -2,6 +2,8 @@ package com.example.back.user.dto;
 
 import com.example.back.user.entity.UserEntity;
 import com.example.back.user.entity.UserRole;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
@@ -28,13 +30,15 @@ public class UserDto {
         private String email;
         
         @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
+        @Size(min = 4, message = "비밀번호는 최소 4자 이상입니다.")
         private String password;
         
         @NotBlank(message = "전화번호는 필수 입력 값입니다.")
+        @Pattern(regexp = "^[0-9]+$", message = "전화번호는 숫자만 입력 가능합니다.")
         private String phoneNumber;
         
         @NotBlank(message = "닉네임은 필수 입력 값입니다.")
-        private String nickName;
+        private String nickname;
 
         @NotBlank(message = "이름은 필수 입력 값입니다.")
         private String name;
@@ -49,7 +53,7 @@ public class UserDto {
                     .email(email)
                     .password(password)
                     .phoneNumber(phoneNumber)
-                    .nickName(nickName)
+                    .nickname(nickname)
                     .name(name)
                     .address(address)
                     .detailAddress(detailAddress)
@@ -66,7 +70,7 @@ public class UserDto {
     @ToString
     public static class UpdateRequest {
         @NotBlank(message = "닉네임을 입력해주세요.")
-        private String nickName;
+        private String nickname;
         
         @NotBlank(message = "주소를 입력해주세요.")
         private String address;
@@ -74,6 +78,7 @@ public class UserDto {
         private String detailAddress;
         
         @NotBlank(message = "전화번호를 입력해주세요.")
+        @Pattern(regexp = "^[0-9]+$", message = "전화번호는 숫자만 입력 가능합니다.")
         private String phoneNumber;
     }
 
@@ -114,7 +119,7 @@ public class UserDto {
         private Long id;
         private String email;
         private String phoneNumber;
-        private String nickName;
+        private String nickname;
         private String name;
         private String address;
         private String detailAddress;
@@ -127,7 +132,7 @@ public class UserDto {
                     .id(entity.getId())
                     .email(entity.getEmail())
                     .phoneNumber(entity.getPhoneNumber())
-                    .nickName(entity.getNickName())
+                    .nickname(entity.getNickname())
                     .name(entity.getName())
                     .address(entity.getAddress())
                     .detailAddress(entity.getDetailAddress())
@@ -146,14 +151,14 @@ public class UserDto {
     public static class ListResponse {
         private Long id;
         private String email;
-        private String nickName;
+        private String nickname;
         private LocalDateTime createdAt;
 
         public static ListResponse from(UserEntity entity) {
             return ListResponse.builder()
                     .id(entity.getId())
                     .email(entity.getEmail())
-                    .nickName(entity.getNickName())
+                    .nickname(entity.getNickname())
                     .createdAt(entity.getCreatedAt())
                     .build();
         }

@@ -3,6 +3,9 @@ package com.example.back.entity;
 import com.example.back.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * 상품 엔티티
@@ -16,6 +19,7 @@ import lombok.*;
 @Getter
 @ToString(exclude = {"seller", "category"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("is_deleted = false") // 생성시 삭제 기본값 설정
 public class ProductEntity extends BaseTimeEntity{
 
     @Id
@@ -37,6 +41,7 @@ public class ProductEntity extends BaseTimeEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "seller_id")
+    @OnDelete(action = OnDeleteAction.CASCADE) // 판매자가 삭제되면 자동 삭제
     private UserEntity seller; // 판매자
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -38,6 +38,16 @@ public class UserService {
     @Transactional
     public Long register(UserDto.CreateRequest request) {
 
+        // 이메일 중복 확인
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+        }
+
+        // 닉네임 중복 확인
+        if (userRepository.existsByNickname(request.getNickname())) {
+            throw new RuntimeException("이미 사용 중인 닉네임입니다.");
+        }
+
         log.info("회원 가입 요청: {}", request);
         UserEntity userEntity = request.toEntity();
 
@@ -90,7 +100,7 @@ public class UserService {
     }
 
     /*
-     * 기존 데이터를 수정
+     * 데이터를 수정
      * */
     @Transactional
     public void modify(Long id, UserDto.UpdateRequest updateDto) {
@@ -100,7 +110,7 @@ public class UserService {
         
         // 비즈니스 로직 수행
         entity.updateProfile(
-                updateDto.getNickName(),
+                updateDto.getNickname(),
                 updateDto.getAddress(),
                 updateDto.getDetailAddress(),
                 updateDto.getPhoneNumber()
@@ -108,13 +118,30 @@ public class UserService {
     }
 
     /*
-     * 데이터를 삭제
+     *  [논리 삭제] 삭제 여부 플래그만 변경 (일반 회원용)
+     * */
+    @Transactional
+    public void removeSoft(Long id) {
+
+        log.info("논리 삭제 요청 ID: {}", id);
+        Optional<UserEntity> result = userRepository.findById(id);
+        UserEntity entity = result.orElseThrow(() -> new RuntimeException("삭제할 사용자를 찾을 수 없습니다. ID: " + id));
+
+        // BaseTimeEntity의 메소드 호출
+        entity.softDelete();
+
+        log.info("ID {}번 유저 비활성화(is_deleted=true) 완료", id);
+
+    }
+
+    /*
+     * [물리 삭제] 데이터 실제 삭제 (관리자용)
      * */
     @Transactional
     public void remove(Long id) {
-        log.info("삭제 요청 ID: {}", id);
+        log.info("물리 삭제 요청 ID: {}", id);
         Optional<UserEntity> result = userRepository.findById(id);
-        UserEntity entity = result.orElseThrow(() -> new RuntimeException("삭제할 데이터를 찾을 수 없습니다. ID: " + id));
+        UserEntity entity = result.orElseThrow(() -> new RuntimeException("삭제할 사용자를 찾을 수 없습니다. ID: " + id));
         userRepository.delete(entity);
         log.info("ID {}번 데이터 삭제 완료", id);
     }

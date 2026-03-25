@@ -26,4 +26,15 @@ public class BaseTimeEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;    // 수정 일시
 
+    private boolean isDeleted = false;    // 삭제 여부
+
+    private LocalDateTime deletedAt;    // 삭제 일시
+
+
+    // 삭제 여부 적용
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

@@ -28,7 +28,7 @@ class UserRepositoryTest {
         UserEntity user = UserEntity.builder()
                 .email("create@test.com")
                 .password("1234")
-                .nickName("새회원")
+                .nickname("새회원")
                 .phoneNumber("010-1111-2222")
                 .address("부천시")
                 .role(UserRole.USER)
@@ -53,7 +53,7 @@ class UserRepositoryTest {
                 .mapToObj(i -> UserEntity.builder()
                         .email("user" + i + "@test.com")
                         .password("1234")
-                        .nickName("사용자" + i)
+                        .nickname("사용자" + i)
                         .phoneNumber("010-1234-567" + i)
                         .address("서울시")
                         .detailAddress("강남구 " + i + "번지")
@@ -64,8 +64,8 @@ class UserRepositoryTest {
 
         log.info("저장된 회원 수: {}", savedUsers.size());
         savedUsers.forEach(user -> 
-            log.info("ID: {}, Email: {}, NickName: {}, Role: {}", 
-                user.getId(), user.getEmail(), user.getNickName(), user.getRole()));
+            log.info("ID: {}, Email: {}, nickname: {}, Role: {}", 
+                user.getId(), user.getEmail(), user.getNickname(), user.getRole()));
 
         assertThat(savedUsers).hasSize(10);
         assertThat(savedUsers).allMatch(user -> user.getId() != null);
@@ -89,8 +89,8 @@ class UserRepositoryTest {
         
         // 각 회원의 기본 정보 출력
         allUsers.forEach(user -> 
-            log.info("회원 정보 - ID: {}, Email: {}, NickName: {}, Role: {}", 
-                user.getId(), user.getEmail(), user.getNickName(), user.getRole()));
+            log.info("회원 정보 - ID: {}, Email: {}, nickname: {}, Role: {}", 
+                user.getId(), user.getEmail(), user.getNickname(), user.getRole()));
 
         // 첫 번째 회원과 마지막 회원 정보 확인
         if (!allUsers.isEmpty()) {
@@ -129,8 +129,8 @@ class UserRepositoryTest {
         assertThat(foundByEmail).isNotNull();
         assertThat(foundByEmail.getId()).isEqualTo(existingUser.getId());
 
-        log.info("조회된 회원: ID={}, Email={}, NickName={}", 
-            foundUser.getId(), foundUser.getEmail(), foundUser.getNickName());
+        log.info("조회된 회원: ID={}, Email={}, nickname={}", 
+            foundUser.getId(), foundUser.getEmail(), foundUser.getNickname());
         log.info("========== 회원 조회 테스트 종료 ==========");
     }
 
@@ -144,8 +144,8 @@ class UserRepositoryTest {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("테스트용 회원 데이터가 없습니다."));
 
-        log.info("수정 전 회원: ID={}, NickName={}, Address={}", 
-            existingUser.getId(), existingUser.getNickName(), existingUser.getAddress());
+        log.info("수정 전 회원: ID={}, nickname={}, Address={}", 
+            existingUser.getId(), existingUser.getNickname(), existingUser.getAddress());
 
 
         // 정보 수정
@@ -157,14 +157,14 @@ class UserRepositoryTest {
         // 수정된 정보 확인
         UserEntity foundUser = userRepository.findById(updatedUser.getId()).orElse(null);
         assertThat(foundUser).isNotNull();
-        assertThat(foundUser.getNickName()).isEqualTo("수정후닉네임");
+        assertThat(foundUser.getNickname()).isEqualTo("수정후닉네임");
         assertThat(foundUser.getAddress()).isEqualTo("수정후주소");
         assertThat(foundUser.getDetailAddress()).isEqualTo("수정후상세주소");
         assertThat(foundUser.getPhoneNumber()).isEqualTo("010-9999-8888");
         assertThat(foundUser.getRole()).isEqualTo(UserRole.ADMIN);
 
-        log.info("수정된 회원: NickName={}, Address={}, Role={}", 
-            foundUser.getNickName(), foundUser.getAddress(), foundUser.getRole());
+        log.info("수정된 회원: nickname={}, Address={}, Role={}", 
+            foundUser.getNickname(), foundUser.getAddress(), foundUser.getRole());
 
 
         log.info("========== 회원 수정 테스트 종료 ==========");
@@ -182,8 +182,8 @@ class UserRepositoryTest {
 
         UserEntity foundUser = userRepository.findById(userId).orElse(null);
 
-        log.info("삭제할 회원: NickName={}, Address={}, Role={}",
-                foundUser.getNickName(), foundUser.getAddress(), foundUser.getRole());
+        log.info("삭제할 회원: nickname={}, Address={}, Role={}",
+                foundUser.getNickname(), foundUser.getAddress(), foundUser.getRole());
 
         // 삭제
         userRepository.delete(foundUser);

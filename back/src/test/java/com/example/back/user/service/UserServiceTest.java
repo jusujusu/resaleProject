@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -32,7 +35,7 @@ public class UserServiceTest {
                 .email("test" + System.currentTimeMillis() + "@mail.com")
                 .password("1234")
                 .phoneNumber("010-1234-5678")
-                .nickName("새내기개발자")
+                .nickname("새내기개발자")
                 .address("경기도 부천시")
                 .detailAddress("OO아파트 101호")
                 .build();
@@ -70,7 +73,7 @@ public class UserServiceTest {
                 .email("test" + System.currentTimeMillis() + "@mail.com")
                 .password("1234")
                 .phoneNumber("010-1234-5678")
-                .nickName("ID조회테스트")
+                .nickname("ID조회테스트")
                 .address("경기도 부천시")
                 .detailAddress("OO아파트 101호")
                 .build();
@@ -95,7 +98,7 @@ public class UserServiceTest {
 
         // 수정 요청
         UserDto.UpdateRequest updateRequest = UserDto.UpdateRequest.builder()
-                .nickName("수정후닉네임")
+                .nickname("수정후닉네임")
                 .address("서울시 강남구")
                 .detailAddress("XX빌딩 202호")
                 .phoneNumber("010-9876-5432")
@@ -109,7 +112,7 @@ public class UserServiceTest {
         UserDto.ReadResponse updatedResponse = userService.getOneById(id);
         log.info(">>> 수정 후 회원 정보: {}", updatedResponse);
 
-        assertThat(updatedResponse.getNickName()).isEqualTo(updateRequest.getNickName());
+        assertThat(updatedResponse.getNickname()).isEqualTo(updateRequest.getNickname());
         assertThat(updatedResponse.getAddress()).isEqualTo(updateRequest.getAddress());
         assertThat(updatedResponse.getDetailAddress()).isEqualTo(updateRequest.getDetailAddress());
         assertThat(updatedResponse.getPhoneNumber()).isEqualTo(updateRequest.getPhoneNumber());
@@ -133,9 +136,36 @@ public class UserServiceTest {
                 () -> userService.getOneById(id)
         );
     }
+    
+    @Test
+    @DisplayName("유저 50명 생성")
+    void createDummyUsers() {
+        log.info("========== 유저 50명 생성 시작 ==========");
 
+        // 지정한 횟수만큼 순회하며 호출결과를 리스트로 수집
+        List<Long> savedIds = IntStream.rangeClosed(1, 50)
+                .mapToObj(i -> {
+                    UserDto.CreateRequest request = UserDto.CreateRequest.builder()
+                            .email("t" + i + "@example.com")
+                            .password("password123!")
+                            .phoneNumber("010-0000-" + String.format("%04d", i))
+                            .nickname("테스트닉네임" + i)
+                            .name("사용자" + i)
+                            .address("서울특별시 강남구")
+                            .detailAddress("테헤란로 " + i + "길")
+                            .build();
 
+                    // 실제 서비스의 단일 가입 메서드 호출 및 생성된 ID 반환
+                    return userService.register(request);
+                })
+                .toList();
 
+        log.info("저장된 유저 수: {}", savedIds.size());
+        assertThat(savedIds).hasSize(50);
+        assertThat(savedIds).allMatch(id -> id != null);
+
+        log.info("========== 더미 유저 50명 생성 종료 ==========");
+    }
 
 
 }

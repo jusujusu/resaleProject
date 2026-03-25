@@ -3,6 +3,7 @@ package com.example.back.user.entity;
 import com.example.back.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 
 /**
  * 회원 관련 테이블 엔티티
@@ -15,6 +16,7 @@ import lombok.*;
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SQLRestriction("is_deleted = false")   // 생성시 삭제 기본값 설정
 public class UserEntity extends BaseTimeEntity {
 
     @Id
@@ -31,7 +33,7 @@ public class UserEntity extends BaseTimeEntity {
     private String phoneNumber;
 
     @Column(nullable = false, length = 50)
-    private String nickName; // 서비스 내에서 표시될 이름
+    private String nickname; // 서비스 내에서 표시될 이름
 
     @Column(nullable = false, length = 50)
     private String name; // 가입시 필요한 이름
@@ -49,11 +51,11 @@ public class UserEntity extends BaseTimeEntity {
 
     // -------------- 빌더 패턴 --------------
     @Builder
-    public UserEntity(String email, String password, String phoneNumber, String nickName, String name, String address, String detailAddress, UserRole role) {
+    public UserEntity(String email, String password, String phoneNumber, String nickname, String name, String address, String detailAddress, UserRole role) {
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
-        this.nickName = nickName;
+        this.nickname = nickname;
         this.name = name;
         this.address = address;
         this.detailAddress = detailAddress;
@@ -65,8 +67,8 @@ public class UserEntity extends BaseTimeEntity {
     /*
     * 회원 정보 수정
     * */
-    public void updateProfile(String nickName, String address, String detailAddress, String phoneNumber) {
-        this.nickName = nickName;
+    public void updateProfile(String nickname, String address, String detailAddress, String phoneNumber) {
+        this.nickname = nickname;
         this.address = address;
         this.detailAddress = detailAddress;
         this.phoneNumber = phoneNumber;

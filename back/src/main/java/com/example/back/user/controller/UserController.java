@@ -2,6 +2,7 @@ package com.example.back.user.controller;
 
 import com.example.back.dto.PageRequestDto;import com.example.back.dto.PageResponseDto;import com.example.back.user.dto.UserDto;
 import com.example.back.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class UserController {
      * 사용자 등록
      * */
     @PostMapping
-    public ResponseEntity<Long> register(@RequestBody UserDto.CreateRequest request) {
+    public ResponseEntity<Long> register(@Valid @RequestBody UserDto.CreateRequest request) {
 
         log.info("REST 요청 - 등록: {}", request);
 
@@ -98,12 +99,25 @@ public class UserController {
         return ResponseEntity.ok(Map.of("result", "success"));
     }
 
-
     /*
-    * 삭제
-    * */
+     * 논리적 삭제
+     * */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> remove(@PathVariable("id") Long id) {
+        log.info("REST 요청 - 회원 탈퇴(Soft Delete) ID: {}", id);
+
+        // 삭제 상태값만 변경
+        userService.removeSoft(id);
+
+        return ResponseEntity.ok(Map.of("result", "success", "message", "회원 탈퇴가 완료되었습니다."));
+    }
+
+
+    /*
+    * 물리적 삭제
+    * */
+    @DeleteMapping("/admin/hard/{id}")
+    public ResponseEntity<Map<String, String>> removeHard(@PathVariable("id") Long id) {
         log.info("REST 요청 - 삭제 ID: {}", id);
         userService.remove(id);
 
