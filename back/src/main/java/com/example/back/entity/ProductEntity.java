@@ -7,6 +7,9 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SQLRestriction;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 상품 엔티티
  *
@@ -48,9 +51,13 @@ public class ProductEntity extends BaseTimeEntity{
     @JoinColumn(name = "category_id")
     private CategoryEntity category; // 상품 카테고리
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImageEntity> images = new ArrayList<>();    // 상품 이미지
+
     // -------------- 빌더 패턴 --------------
     @Builder
     public ProductEntity(String title, String content, Integer price, ProductStatus status, UserEntity seller, CategoryEntity category) {
+
         this.title = title;
         this.content = content;
         this.price = price;
@@ -74,5 +81,13 @@ public class ProductEntity extends BaseTimeEntity{
         this.title = title;
         this.content = content;
         this.price = price;
+    }
+
+    /*
+     * 상품 이미지 추가
+     * */
+    public void addImage(ProductImageEntity image) {
+        this.images.add(image);
+        image.setProduct(this); // 상품 이미지 엔티티에서 생서한 연관관계 편의 메서드
     }
 }

@@ -1,14 +1,19 @@
 package com.example.back.controller;
 
-import com.example.back.dto.CategoryDto;
 import com.example.back.dto.ProductDto;
 import com.example.back.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -31,12 +36,17 @@ public class ProductController {
      * 실제 서비스에서는 SecurityContextHolder에서 email을 추출하지만,
      * 현재는 테스트를 위해 Header나 RequestParam으로 받는다고 가정합니다.
      * */
-    @PostMapping
-    public ResponseEntity<Long> register(@Valid @RequestBody ProductDto.ProductCreateRequest request, @RequestParam String email) {
-        log.info("REST 요청 - 사용자: {} 상품: {}", email, request);
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<Long> register(
+            @Valid @RequestPart("productDto") ProductDto.ProductCreateRequest request,
+            @RequestPart(value = "files", required = false) java.util.List<MultipartFile> files,
+            @RequestParam String email) {
+        
+        log.info("REST 요청 - 상품 등록 - 이메일: {}, 데이터: {}, 파일 개수: {}", 
+                email, request, (files != null ? files.size() : 0));
 
         // 등록
-        Long id = productService.registerProduct(request, email);
+        Long id = productService.registerProduct(request, files, email);
 
         // 응답과 생성된 id 전달
         return ResponseEntity

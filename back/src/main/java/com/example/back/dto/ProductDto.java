@@ -2,6 +2,7 @@ package com.example.back.dto;
 
 import com.example.back.entity.CategoryEntity;
 import com.example.back.entity.ProductEntity;
+import com.example.back.entity.ProductImageEntity;
 import com.example.back.entity.ProductStatus;
 import com.example.back.user.entity.UserEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * FileName    : ProductDto
@@ -76,6 +78,30 @@ public class ProductDto {
     }
 
 
+    // 상품 이미지 정보 응답용 DTO
+    @Getter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ProductImageResponse {
+        private Long id;
+        private String originalFileName;
+        private String savedFileName;
+        private String imageUrl;       // 프론트가 <img src="...">에 바로 쓸 경로
+        private boolean repImgYn;
+
+        public static ProductImageResponse from(ProductImageEntity entity) {
+            return ProductImageResponse.builder()
+                    .id(entity.getId())
+                    .originalFileName(entity.getOriginalFileName())
+                    .savedFileName(entity.getSavedFileName())
+                    .imageUrl("/images/" + entity.getSavedFileName())   // WebConfig에서 설정한 "/images/**" 경로와 매핑
+                    .repImgYn(entity.isRepImgYn())
+                    .build();
+        }
+    }
+
+
     // 상품 상세 조회 응답 (Read)
     @Getter
     @Builder
@@ -97,6 +123,9 @@ public class ProductDto {
         private Long categoryId;
         private String categoryName;
 
+        // 이미지 목록 추가
+        private List<ProductImageResponse> images;
+
         private LocalDateTime createdAt;
 
         public static ProductReadResponse from(ProductEntity entity) {
@@ -110,6 +139,9 @@ public class ProductDto {
                     .sellerNickname(entity.getSeller().getNickname())
                     .categoryId(entity.getCategory().getId())
                     .categoryName(entity.getCategory().getName())
+                    .images(entity.getImages().stream()
+                            .map(ProductImageResponse::from)
+                            .collect(java.util.stream.Collectors.toList()))
                     .createdAt(entity.getCreatedAt())
                     .build();
         }
@@ -128,16 +160,23 @@ public class ProductDto {
         private Long id;
         private String title;
         private Integer price;
+        private String representativeImageUrl; // 대표 이미지 경로
 
         public static ProductListResponse from(ProductEntity entity) {
+            // 대표 이미지 파일명 찾기
+            String fileName = entity.getImages().stream()
+                    .filter(ProductImageEntity::isRepImgYn)
+                    .map(ProductImageEntity::getSavedFileName)
+                    .findFirst()
+                    .orElse(null);
+
             return ProductListResponse.builder()
                     .id(entity.getId())
                     .title(entity.getTitle())
                     .price(entity.getPrice())
+                    // 가상 경로 매핑: 파일이 없으면 null, 있으면 /images/uuid.jpg
+                    .representativeImageUrl(fileName != null ? "/images/" + fileName : null)
                     .build();
         }
     }
-
-
-
 }

@@ -6,7 +6,9 @@ import com.example.back.dto.ProductDto;
 import com.example.back.entity.CategoryEntity;
 import com.example.back.entity.ProductEntity;
 import com.example.back.repository.CategoryRepository;
+import com.example.back.repository.ProductImageRepository;
 import com.example.back.repository.ProductRepository;
+import com.example.back.util.FileUtil;
 import com.example.back.user.entity.UserEntity;
 import com.example.back.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,13 +37,15 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final ProductImageRepository productImageRepository;
+    private final FileUtil fileUtil;
 
 
     /*
      * 상품 등록
      * */
     @Transactional
-    public Long registerProduct(ProductDto.ProductCreateRequest request, String email) {
+    public Long registerProduct(ProductDto.ProductCreateRequest request, List<MultipartFile> files, String email) {
         log.info("상품 등록 시도 - 작성자 이메일: {}, 상품명: {}", email, request.getTitle());
 
         // 판매자 조회 (추후 로그인한 사용자 값 가져오기로 수정)
@@ -56,8 +61,22 @@ public class ProductService {
         CategoryEntity category = categoryResult.orElseThrow(() -> new RuntimeException("해당 ID의 카테고리를 찾을 수 없습니다. ID: " + request.getCategoryId()));
         log.info(">>> [카테고리 확인] Category Name: {}", category.getName());
 
-        // 엔티티 변환 및 저장
+        // 1. 상품 엔티티 생성 및 저장
         ProductEntity entity = request.toEntity(seller, category);
+        
+        // 2. 이미지 파일 처리 및 연관관계 설정
+        if (files != null && !files.isEmpty()) {
+            try {
+                List<com.example.back.entity.ProductImageEntity> images = fileUtil.storeFiles(files);
+                for (com.example.back.entity.ProductImageEntity image : images) {
+                    entity.addImage(image);
+                }
+            } catch (java.io.IOException e) {
+                log.error("파일 저장 중 오류 발생", e);
+                throw new RuntimeException("이미지 저장 실패: " + e.getMessage());
+            }
+        }
+
         ProductEntity savedEntity = productRepository.save(entity);
         log.info(">>> [등록 완료] 생성된 Product ID: {}", savedEntity.getId());
         return savedEntity.getId();
