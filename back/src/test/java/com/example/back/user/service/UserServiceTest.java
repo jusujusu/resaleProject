@@ -31,7 +31,7 @@ public class UserServiceTest {
     void createTest() {
         log.info("========== 회원 생성 테스트 시작 ==========");
 
-        UserDto.CreateRequest request = UserDto.CreateRequest.builder()
+        UserDto.UserCreateRequest request = UserDto.UserCreateRequest.builder()
                 .email("test" + System.currentTimeMillis() + "@mail.com")
                 .password("1234")
                 .phoneNumber("010-1234-5678")
@@ -56,7 +56,7 @@ public class UserServiceTest {
 
         String email = "create@test.com";
 
-        UserDto.ReadResponse response = userService.getOne(email);
+        UserDto.UserReadResponse response = userService.getOne(email);
 
         log.info(">>> 조회 결과: {}", response);
         assertThat(response.getEmail()).isEqualTo(email);
@@ -69,7 +69,7 @@ public class UserServiceTest {
     void readOneByIdTest() {
 
         // 먼저 회원가입
-        UserDto.CreateRequest request = UserDto.CreateRequest.builder()
+        UserDto.UserCreateRequest request = UserDto.UserCreateRequest.builder()
                 .email("test" + System.currentTimeMillis() + "@mail.com")
                 .password("1234")
                 .phoneNumber("010-1234-5678")
@@ -81,7 +81,7 @@ public class UserServiceTest {
         Long savedId = userService.register(request);
 
         // ID로 조회
-        UserDto.ReadResponse response = userService.getOneById(savedId);
+        UserDto.UserReadResponse response = userService.getOneById(savedId);
 
         log.info(">>> ID 조회 결과: {}", response);
         assertThat(response.getId()).isEqualTo(savedId);
@@ -97,7 +97,7 @@ public class UserServiceTest {
         log.info(">>> ID {}번 회원 정보 수정", id);
 
         // 수정 요청
-        UserDto.UpdateRequest updateRequest = UserDto.UpdateRequest.builder()
+        UserDto.UserUpdateRequest updateRequest = UserDto.UserUpdateRequest.builder()
                 .nickname("수정후닉네임")
                 .address("서울시 강남구")
                 .detailAddress("XX빌딩 202호")
@@ -109,7 +109,7 @@ public class UserServiceTest {
         log.info(">>> 수정 요청 정보: {}", updateRequest);
 
         // 수정된 데이터 조회 및 검증
-        UserDto.ReadResponse updatedResponse = userService.getOneById(id);
+        UserDto.UserReadResponse updatedResponse = userService.getOneById(id);
         log.info(">>> 수정 후 회원 정보: {}", updatedResponse);
 
         assertThat(updatedResponse.getNickname()).isEqualTo(updateRequest.getNickname());
@@ -145,7 +145,7 @@ public class UserServiceTest {
         // 지정한 횟수만큼 순회하며 호출결과를 리스트로 수집
         List<Long> savedIds = IntStream.rangeClosed(1, 50)
                 .mapToObj(i -> {
-                    UserDto.CreateRequest request = UserDto.CreateRequest.builder()
+                    UserDto.UserCreateRequest request = UserDto.UserCreateRequest.builder()
                             .email("t" + i + "@example.com")
                             .password("password123!")
                             .phoneNumber("010-0000-" + String.format("%04d", i))

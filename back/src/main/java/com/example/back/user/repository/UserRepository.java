@@ -31,4 +31,10 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     * */
     boolean existsByNickname(String nickname);
 
+    /*
+     * 삭제된 데이터 포함 단건 조회 (물리 삭제용)
+     */
+    @Query(value = "SELECT * FROM users WHERE id = :id", nativeQuery = true)
+    Optional<UserEntity> findByIdIncludeDeleted(@Param("id") Long id);
+
 }

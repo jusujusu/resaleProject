@@ -19,7 +19,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @ToString(exclude = {"seller", "category"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@SQLRestriction("is_deleted = false") // 생성시 삭제 기본값 설정
+@SQLRestriction("is_deleted = false") // 생성시 삭제 기본값 설정 (생성하는 쿼리뒤에 AND is_deleted = false 자동 생성 )
 public class ProductEntity extends BaseTimeEntity{
 
     @Id

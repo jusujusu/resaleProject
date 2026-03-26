@@ -19,7 +19,7 @@ public class CategoryDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class Request {
+    public static class CategoryRequest {
         @NotBlank(message = "카테고리 이름은 필수 입력 값입니다.")
         private String name;
         
@@ -43,21 +43,21 @@ public class CategoryDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class Response {
+    public static class CategoryResponse {
         private Long id;
         private String name;
         private Integer sortOrder;
-        private List<Response> children;
+        private List<CategoryResponse> children;
 
-        public static Response from(CategoryEntity entity) {
-            return Response.builder()
+        public static CategoryResponse from(CategoryEntity entity) {
+            return CategoryResponse.builder()
                     .id(entity.getId())
                     .name(entity.getName())
                     .sortOrder(entity.getSortOrder())
                     // 자식이 없으면 빈 리스트, 있으면 재귀적으로 변환
                     .children(entity.getChildren() == null ? List.of() :
                             entity.getChildren().stream()
-                                    .map(Response::from)
+                                    .map(CategoryResponse::from)
                                     .collect(Collectors.toList()))
                     .build();
         }

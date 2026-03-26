@@ -30,7 +30,7 @@ public class UserController {
      * 사용자 등록
      * */
     @PostMapping
-    public ResponseEntity<Long> register(@Valid @RequestBody UserDto.CreateRequest request) {
+    public ResponseEntity<Long> register(@Valid @RequestBody UserDto.UserCreateRequest request) {
 
         log.info("REST 요청 - 등록: {}", request);
 
@@ -49,11 +49,11 @@ public class UserController {
      * 사용자 조회
      * */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDto.ReadResponse> getOne(@PathVariable("id") Long id) {
+    public ResponseEntity<UserDto.UserReadResponse> getOne(@PathVariable("id") Long id) {
 
         log.info("REST 요청 - 상세 조회 ID: {}", id);
 
-        UserDto.ReadResponse response = userService.getOneById(id);
+        UserDto.UserReadResponse response = userService.getOneById(id);
         log.info("조회 정보: {}", response);
 
         return ResponseEntity.ok(response);
@@ -63,9 +63,9 @@ public class UserController {
     * 페이징 없는 목록 조회
     * */
     @GetMapping("/all")
-    public ResponseEntity<List<UserDto.ListResponse>> getAllList() {
+    public ResponseEntity<List<UserDto.UserListResponse>> getAllList() {
         log.info("REST 요청 - 전체 목록 조회");
-        List<UserDto.ListResponse> list = userService.getAllList();
+        List<UserDto.UserListResponse> list = userService.getAllList();
         return ResponseEntity.ok(list);
     }
 
@@ -74,12 +74,12 @@ public class UserController {
      * 페이징 목록 조회
      * */
     @GetMapping("/list")
-    public ResponseEntity<PageResponseDto<UserDto.ListResponse>> getList(PageRequestDto pageRequestDto) {
+    public ResponseEntity<PageResponseDto<UserDto.UserListResponse>> getList(PageRequestDto pageRequestDto) {
 
         log.info("REST 요청 - 페이징 조회: page={}, size={}", 
                 pageRequestDto.getPage(), pageRequestDto.getSize());
 
-        PageResponseDto<UserDto.ListResponse> response = userService.getListPage(pageRequestDto);
+        PageResponseDto<UserDto.UserListResponse> response = userService.getListPage(pageRequestDto);
         log.info("페이징 목록 : {}", response);
 
         return ResponseEntity.ok(response);
@@ -92,7 +92,7 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<Map<String, String>> modify(
             @PathVariable("id") Long id,
-            @RequestBody UserDto.UpdateRequest updateDto) {
+            @RequestBody UserDto.UserUpdateRequest updateDto) {
         log.info("REST 요청 - 수정 ID: {}, 데이터: {}", id, updateDto);
         userService.modify(id, updateDto);
 

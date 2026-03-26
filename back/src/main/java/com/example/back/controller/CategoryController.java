@@ -30,7 +30,7 @@ public class CategoryController {
      * 카테고리 등록
      * */
     @PostMapping
-    public ResponseEntity<Long> register(@RequestBody CategoryDto.Request request) {
+    public ResponseEntity<Long> register(@RequestBody CategoryDto.CategoryRequest request) {
 
         log.info("REST 요청 - 등록: {}", request);
 
@@ -47,10 +47,10 @@ public class CategoryController {
      * 카테고리 트리 조회
      * */
     @GetMapping
-    public ResponseEntity<List<CategoryDto.Response>> getAllTree() {
+    public ResponseEntity<List<CategoryDto.CategoryResponse>> getAllTree() {
         log.info("REST 요청 - 전체 목록 조회 ");
 
-        List<CategoryDto.Response> list = categoryService.findAllTree();
+        List<CategoryDto.CategoryResponse> list = categoryService.findAllTree();
 
         log.info("목록 : {}", list);
 
@@ -61,7 +61,7 @@ public class CategoryController {
      * 카테고리 수정
      * */
     @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, String>> modify(@PathVariable("id") Long id, @RequestBody CategoryDto.Request request) {
+    public ResponseEntity<Map<String, String>> modify(@PathVariable("id") Long id, @RequestBody CategoryDto.CategoryRequest request) {
         log.info("카테고리 수정 요청 ID: {}, Data: {}", id, request);
 
         categoryService.updateCategory(id, request);

@@ -24,7 +24,7 @@ public class UserDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class CreateRequest {
+    public static class UserCreateRequest {
         @NotBlank(message = "이메일은 필수 입력 값입니다.")
         @Email(message = "이메일 형식이 올바르지 않습니다.")
         private String email;
@@ -68,7 +68,7 @@ public class UserDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class UpdateRequest {
+    public static class UserUpdateRequest {
         @NotBlank(message = "닉네임을 입력해주세요.")
         private String nickname;
         
@@ -88,7 +88,7 @@ public class UserDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class PasswordChangeRequest {
+    public static class UserPasswordChangeRequest {
         @NotBlank(message = "현재 비밀번호를 입력해주세요.")
         private String currentPassword;
         
@@ -102,7 +102,7 @@ public class UserDto {
     @AllArgsConstructor
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
-    public static class LoginRequest {
+    public static class UserLoginRequest {
         @NotBlank(message = "이메일은 필수 입력 값입니다.")
         private String email;
         
@@ -115,7 +115,7 @@ public class UserDto {
     @Builder
     @AllArgsConstructor
     @ToString
-    public static class ReadResponse {
+    public static class UserReadResponse {
         private Long id;
         private String email;
         private String phoneNumber;
@@ -127,8 +127,8 @@ public class UserDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public static ReadResponse from(UserEntity entity) {
-            return ReadResponse.builder()
+        public static UserReadResponse from(UserEntity entity) {
+            return UserReadResponse.builder()
                     .id(entity.getId())
                     .email(entity.getEmail())
                     .phoneNumber(entity.getPhoneNumber())
@@ -148,14 +148,14 @@ public class UserDto {
     @Builder
     @AllArgsConstructor
     @ToString
-    public static class ListResponse {
+    public static class UserListResponse {
         private Long id;
         private String email;
         private String nickname;
         private LocalDateTime createdAt;
 
-        public static ListResponse from(UserEntity entity) {
-            return ListResponse.builder()
+        public static UserListResponse from(UserEntity entity) {
+            return UserListResponse.builder()
                     .id(entity.getId())
                     .email(entity.getEmail())
                     .nickname(entity.getNickname())

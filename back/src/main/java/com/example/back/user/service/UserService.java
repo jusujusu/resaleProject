@@ -36,7 +36,7 @@ public class UserService {
     * 회원 가입
     * */
     @Transactional
-    public Long register(UserDto.CreateRequest request) {
+    public Long register(UserDto.UserCreateRequest request) {
 
         // 이메일 중복 확인
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -58,7 +58,7 @@ public class UserService {
     /*
      * 이메일로 상세 조회
      * */
-    public UserDto.ReadResponse getOne(String email) {
+    public UserDto.UserReadResponse getOne(String email) {
 
         log.info("입력한 Email : {}", email);
         Optional<UserEntity> result = userRepository.findByEmail(email);
@@ -67,23 +67,23 @@ public class UserService {
         UserEntity entity = result.orElseThrow(() -> new RuntimeException("해당 이메일을 가진 사용자를 찾을 수 없습니다."));
 
         log.info(">>> 조회 결과: {}", result);
-        return UserDto.ReadResponse.from(entity);
+        return UserDto.UserReadResponse.from(entity);
     }
 
     /*
      * ID를 통해 단건 상세 정보를 조회
      * */
-    public UserDto.ReadResponse getOneById(Long id) {
+    public UserDto.UserReadResponse getOneById(Long id) {
         log.info("Fetching User with ID: {}", id);
         Optional<UserEntity> result = userRepository.findById(id);
         UserEntity entity = result.orElseThrow(() -> new RuntimeException("해당 데이터를 찾을 수 없습니다. ID: " + id));
-        return UserDto.ReadResponse.from(entity);
+        return UserDto.UserReadResponse.from(entity);
     }
 
     /*
      * 일반 페이징 목록을 조회
      * */
-    public PageResponseDto<UserDto.ListResponse> getListPage(PageRequestDto requestDto) {
+    public PageResponseDto<UserDto.UserListResponse> getListPage(PageRequestDto requestDto) {
         Pageable pageable = requestDto.getPageable("id");
         Page<UserEntity> result = userRepository.findAll(pageable);
         return convertToPageResponse(result);
@@ -92,10 +92,10 @@ public class UserService {
     /*
      * 페이징 없는 전체 목록을 조회
      * */
-    public List<UserDto.ListResponse> getAllList() {
+    public List<UserDto.UserListResponse> getAllList() {
         List<UserEntity> entities = userRepository.findAll();
         return entities.stream()
-                .map(UserDto.ListResponse::from)
+                .map(UserDto.UserListResponse::from)
                 .collect(Collectors.toList());
     }
 
@@ -103,7 +103,7 @@ public class UserService {
      * 데이터를 수정
      * */
     @Transactional
-    public void modify(Long id, UserDto.UpdateRequest updateDto) {
+    public void modify(Long id, UserDto.UserUpdateRequest updateDto) {
         log.info("수정 요청 ID: {}", id);
         Optional<UserEntity> result = userRepository.findById(id);
         UserEntity entity = result.orElseThrow(() -> new RuntimeException("수정할 데이터를 찾을 수 없습니다. ID: " + id));
@@ -140,7 +140,7 @@ public class UserService {
     @Transactional
     public void remove(Long id) {
         log.info("물리 삭제 요청 ID: {}", id);
-        Optional<UserEntity> result = userRepository.findById(id);
+        Optional<UserEntity> result = userRepository.findByIdIncludeDeleted(id);
         UserEntity entity = result.orElseThrow(() -> new RuntimeException("삭제할 사용자를 찾을 수 없습니다. ID: " + id));
         userRepository.delete(entity);
         log.info("ID {}번 데이터 삭제 완료", id);
@@ -149,9 +149,9 @@ public class UserService {
     /*
      * [공통 로직] Page 결과를 공통 응답 DTO로 변환
      * */
-    private PageResponseDto<UserDto.ListResponse> convertToPageResponse(Page<UserEntity> result) {
-        List<UserDto.ListResponse> dtoList = result.getContent().stream()
-                .map(UserDto.ListResponse::from)
+    private PageResponseDto<UserDto.UserListResponse> convertToPageResponse(Page<UserEntity> result) {
+        List<UserDto.UserListResponse> dtoList = result.getContent().stream()
+                .map(UserDto.UserListResponse::from)
                 .collect(Collectors.toList());
         return new PageResponseDto<>(result, dtoList);
     }

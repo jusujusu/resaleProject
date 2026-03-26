@@ -35,7 +35,7 @@ public class CategoryService {
     * 카테고리 생성
     * */
     @Transactional
-    public Long register(CategoryDto.Request request) {
+    public Long register(CategoryDto.CategoryRequest request) {
         log.info("카테고리 생성 요청: {}", request);
 
         CategoryEntity category = request.toEntity();
@@ -57,10 +57,10 @@ public class CategoryService {
     /*
      * 전체 트리 구조 조회
      * */
-    public List<CategoryDto.Response> findAllTree() {
+    public List<CategoryDto.CategoryResponse> findAllTree() {
         log.info("전체 카테고리 트리 조회");
         return categoryRepository.findRootCategories().stream()
-                .map(CategoryDto.Response::from)
+                .map(CategoryDto.CategoryResponse::from)
                 .toList();
     }
 
@@ -68,7 +68,7 @@ public class CategoryService {
      * 카테고리 수정
      * */
     @Transactional
-    public void updateCategory(Long id, CategoryDto.Request request) {
+    public void updateCategory(Long id, CategoryDto.CategoryRequest request) {
         log.info("카테고리 수정 요청 ID: {}, Data: {}", id, request);
 
         // 수정할 카테고리 조회
