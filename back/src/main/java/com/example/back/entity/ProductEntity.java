@@ -3,6 +3,7 @@ package com.example.back.entity;
 import com.example.back.user.entity.UserEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.SQLRestriction;
@@ -51,6 +52,8 @@ public class ProductEntity extends BaseTimeEntity{
     @JoinColumn(name = "category_id")
     private CategoryEntity category; // 상품 카테고리
 
+    @BatchSize(size = 20)
+    @OrderBy("sortOrder ASC") // 조회 시 정렬 순서대로 가져옴
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImageEntity> images = new ArrayList<>();    // 상품 이미지
 
@@ -71,16 +74,18 @@ public class ProductEntity extends BaseTimeEntity{
      * 상태 변경 메소드
      * */
     public void changeStatus(ProductStatus status) {
-        this.status = status;
+        if (status != null) {
+            this.status = status;
+        }
     }
 
     /*
-     * 상품 수정 메소드
+     * 상품 수정 메소드 (patch 방식을 사용하기 때문에 아래처럼 작성)
      * */
     public void updateProduct(String title, String content, Integer price) {
-        this.title = title;
-        this.content = content;
-        this.price = price;
+        if (title != null && !title.isBlank()) this.title = title;
+        if (content != null && !content.isBlank()) this.content = content;
+        if (price != null) this.price = price;
     }
 
     /*

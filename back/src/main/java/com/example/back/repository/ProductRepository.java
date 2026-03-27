@@ -62,4 +62,14 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     @Query(value = "SELECT * FROM products WHERE id = :id", nativeQuery = true)
     Optional<ProductEntity> findByIdIncludeDeleted(@Param("id") Long id);
 
+
+    /*
+     * 상품 상세 조회 (판매자, 카테고리 fetch join)
+     * 이미지는 엔티티의 @BatchSize 설정으로 인해 첫 접근 시 IN 쿼리로 조회
+     * */
+    @Query("SELECT p FROM ProductEntity p " +
+            "JOIN FETCH p.seller " +
+            "JOIN FETCH p.category " +
+            "WHERE p.id = :id")
+    Optional<ProductEntity> findByIdWithDetails(@Param("id") Long id);
 }

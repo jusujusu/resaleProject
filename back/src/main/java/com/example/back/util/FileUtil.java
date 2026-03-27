@@ -100,6 +100,15 @@ public class FileUtil {
                 .build();
     }
 
+    /*
+    * 파일 삭제
+    * */
+    public void deleteFile(String savedFileName) {
+        File file = new File(fileDir + File.separator + savedFileName);
+        if (file.exists()) {
+            file.delete();
+        }
+    }
 
     /*
      * UUID 파일명 생성

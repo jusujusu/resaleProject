@@ -5,6 +5,7 @@ import com.example.back.dto.PageResponseDto;
 import com.example.back.dto.ProductDto;
 import com.example.back.entity.CategoryEntity;
 import com.example.back.entity.ProductEntity;
+import com.example.back.entity.ProductImageEntity;
 import com.example.back.repository.CategoryRepository;
 import com.example.back.repository.ProductImageRepository;
 import com.example.back.repository.ProductRepository;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -61,22 +63,29 @@ public class ProductService {
         CategoryEntity category = categoryResult.orElseThrow(() -> new RuntimeException("해당 ID의 카테고리를 찾을 수 없습니다. ID: " + request.getCategoryId()));
         log.info(">>> [카테고리 확인] Category Name: {}", category.getName());
 
-        // 1. 상품 엔티티 생성 및 저장
+        // 상품 엔티티 생성
         ProductEntity entity = request.toEntity(seller, category);
         
-        // 2. 이미지 파일 처리 및 연관관계 설정
+        // 이미지 파일 처리 및 연관관계 설정
         if (files != null && !files.isEmpty()) {
             try {
-                List<com.example.back.entity.ProductImageEntity> images = fileUtil.storeFiles(files);
-                for (com.example.back.entity.ProductImageEntity image : images) {
+                List<ProductImageEntity> images = fileUtil.storeFiles(files);
+                for (int i = 0; i < images.size(); i++) {
+                    ProductImageEntity image = images.get(i);
+
+                    image.updateSortOrder(i);   // 정렬 순서 부여
+                    image.updateRepImg(i == 0); // 첫번째 이미지만 대표 이미지 설정
+
+                    // 상품 엔티티에 이미지 추가
                     entity.addImage(image);
                 }
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 log.error("파일 저장 중 오류 발생", e);
                 throw new RuntimeException("이미지 저장 실패: " + e.getMessage());
             }
         }
 
+        // 상품 엔티티 저장
         ProductEntity savedEntity = productRepository.save(entity);
         log.info(">>> [등록 완료] 생성된 Product ID: {}", savedEntity.getId());
         return savedEntity.getId();
@@ -88,7 +97,8 @@ public class ProductService {
      * */
     public ProductDto.ProductReadResponse getOne(Long id) {
 
-        Optional<ProductEntity> result = productRepository.findById(id);
+        // 상품 조회
+        Optional<ProductEntity> result = productRepository.findByIdWithDetails(id);
         //존재 하지 않을시 예외 처리
         ProductEntity entity = result.orElseThrow(() -> new RuntimeException("해당 ID의 상품을 찾을 수 없습니다. ID: " + id));
 
@@ -100,7 +110,7 @@ public class ProductService {
      * 상품 수정
      * */
     @Transactional
-    public void modify(Long id, ProductDto.ProductUpdateRequest updateDto) {
+    public void modify(Long id, ProductDto.ProductUpdateRequest updateDto, List<MultipartFile> files) {
 
         log.info(">>> [수정 요청] Product ID: {}, New Title: {}", id, updateDto.getTitle());
 
@@ -109,16 +119,49 @@ public class ProductService {
         // 존재하지 않을 시 예외 처리
         ProductEntity entity = result.orElseThrow(() -> new RuntimeException("수정할 상품을 찾을 수 없습니다. ID: " + id));
 
-        // 비즈니스 로직 실행
-        entity.updateProduct(
-                updateDto.getTitle(),
-                updateDto.getContent(),
-                updateDto.getPrice()
-        );
+        // 텍스트 부분 수정 비즈니스 로직 (DTO가 존재 할 경우에만)
+        if (updateDto != null) {
+            String newTitle = (updateDto.getTitle() != null) ? updateDto.getTitle() : entity.getTitle();
+            String newContent = (updateDto.getContent() != null) ? updateDto.getTitle() : entity.getContent();
+            Integer newPrice = (updateDto.getPrice() != null) ? updateDto.getPrice() : entity.getPrice();
 
-        entity.changeStatus(
-                updateDto.getStatus()
-        );
+            entity.updateProduct(newTitle, newContent, newPrice);
+        }
+
+        // 상태값(Enum)이 있으면 상태 수정
+        if (updateDto.getStatus() != null) {
+            entity.changeStatus(updateDto.getStatus());
+        }
+
+        // 이미지 교체 : 새 파일 리스트가 들어온 경우에만 실행
+        if (files != null && !files.isEmpty()) {
+
+            // 기존 db에 저장된 파일명들 백업
+            List<String> oldFileNames = entity.getImages().stream()
+                    .map(ProductImageEntity::getSavedFileName)
+                    .toList();
+
+            // 기존 연관 관계 제거
+            entity.getImages().clear();
+
+            try {
+                // 새 파일 저장 및 추가
+                List<ProductImageEntity> newImages = fileUtil.storeFiles(files);
+
+                for (int i = 0; i < newImages.size(); i++) {
+                    ProductImageEntity img = newImages.get(i);
+                    img.updateSortOrder(i);   // 순서 부여
+                    img.updateRepImg(i == 0); // 첫 번째 이미지 대표 설정
+                    entity.addImage(img);
+                }
+
+                // 기존 물리 파일 삭제
+                oldFileNames.forEach(fileUtil::deleteFile);
+
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 수정 중 오류 발생: " + e.getMessage());
+            }
+        }
 
         log.info(">>> [수정 완료] Product ID: {}", id);
     }

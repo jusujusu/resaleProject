@@ -25,6 +25,8 @@ public class ProductImageEntity extends BaseTimeEntity{
 
     private boolean repImgYn;           // 대표 이미지 여부
 
+    private Integer sortOrder;           // 이미지 순서
+
     // 상품
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
@@ -33,16 +35,27 @@ public class ProductImageEntity extends BaseTimeEntity{
 
     // -------------- 빌더 패턴 --------------
     @Builder
-    public ProductImageEntity(String originalFileName, String savedFileName, boolean repImgYn) {
+    public ProductImageEntity(String originalFileName, String savedFileName, boolean repImgYn, Integer sortOrder) {
         this.originalFileName = originalFileName;
         this.savedFileName = savedFileName;
         this.repImgYn = repImgYn;
+        this.sortOrder = (sortOrder != null) ? sortOrder : 0;
     }
 
-
+    // -------------- 비즈니스 로직 --------------
     // 연관관계 편의 메서드
     public void setProduct(ProductEntity product) {
         this.product = product;
+    }
+
+    // 순서 변경을 위한 비즈니스 로직
+    public void updateSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    // 대표 이미지 여부 변경 로직 (수정 시 필요할 수 있음)
+    public void updateRepImg(boolean repImgYn) {
+        this.repImgYn = repImgYn;
     }
 
 }

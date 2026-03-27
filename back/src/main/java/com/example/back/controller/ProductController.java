@@ -1,11 +1,9 @@
 package com.example.back.controller;
 
+import com.example.back.dto.PageRequestDto;
+import com.example.back.dto.PageResponseDto;
 import com.example.back.dto.ProductDto;
 import com.example.back.service.ProductService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,8 +40,8 @@ public class ProductController {
             @Valid @RequestPart("productDto") ProductDto.ProductCreateRequest request,
             @RequestPart(value = "files", required = false) java.util.List<MultipartFile> files,
             @RequestParam String email) {
-        
-        log.info("REST 요청 - 상품 등록 - 이메일: {}, 데이터: {}, 파일 개수: {}", 
+
+        log.info("REST 요청 - 상품 등록 - 이메일: {}, 데이터: {}, 파일 개수: {}",
                 email, request, (files != null ? files.size() : 0));
 
         // 등록
@@ -69,20 +68,23 @@ public class ProductController {
     }
 
     /*
-    * 상품 정보 수정
-    * */
-    @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, String>> modify(@PathVariable("id") Long id, @RequestBody ProductDto.ProductUpdateRequest updateDto) {
+     * 상품 정보 수정
+     * */
+    @PatchMapping(value = "/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public ResponseEntity<Map<String, String>> modify(
+            @PathVariable("id") Long id,
+            @RequestPart(value = "productDto", required = false) ProductDto.ProductUpdateRequest updateDto,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
 
         log.info("REST 요청 - 수정 ID: {}, 데이터: {}", id, updateDto);
-        productService.modify(id, updateDto);
+        productService.modify(id, updateDto, files);
 
         return ResponseEntity.ok(Map.of("result", "success"));
     }
 
     /*
-    * 논리적 삭제
-    * */
+     * 논리적 삭제
+     * */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> remove(@PathVariable("id") Long id) {
         log.info("REST 요청 - 상품 삭제(Soft Delete) ID: {}", id);
@@ -103,6 +105,21 @@ public class ProductController {
         productService.remove(id);
 
         return ResponseEntity.ok(Map.of("result", "success"));
+    }
+
+
+    /*
+     * 상품 목록 (검색 x)
+     * */
+    @GetMapping("/list")
+    public ResponseEntity<PageResponseDto<ProductDto.ProductListResponse>> list(PageRequestDto pageRequestDto) {
+
+        log.info(">>> [목록 조회 요청] Page: {}, Size: {}", pageRequestDto.getPage(), pageRequestDto.getSize());
+
+        PageResponseDto<ProductDto.ProductListResponse> response = productService.getListPage(pageRequestDto);
+
+        return ResponseEntity.ok(response);
+
     }
 
 }

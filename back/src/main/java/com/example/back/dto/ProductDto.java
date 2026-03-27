@@ -89,6 +89,7 @@ public class ProductDto {
         private String savedFileName;
         private String imageUrl;       // 프론트가 <img src="...">에 바로 쓸 경로
         private boolean repImgYn;
+        private Integer sortOrder;
 
         public static ProductImageResponse from(ProductImageEntity entity) {
             return ProductImageResponse.builder()
@@ -97,6 +98,7 @@ public class ProductDto {
                     .savedFileName(entity.getSavedFileName())
                     .imageUrl("/images/" + entity.getSavedFileName())   // WebConfig에서 설정한 "/images/**" 경로와 매핑
                     .repImgYn(entity.isRepImgYn())
+                    .sortOrder(entity.getSortOrder())
                     .build();
         }
     }
