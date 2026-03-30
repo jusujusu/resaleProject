@@ -27,7 +27,7 @@ public class UserController {
     private final UserService userService;
 
     /*
-     * 사용자 등록
+     * 회원 가입
      * */
     @PostMapping
     public ResponseEntity<Long> register(@Valid @RequestBody UserDto.UserCreateRequest request) {
