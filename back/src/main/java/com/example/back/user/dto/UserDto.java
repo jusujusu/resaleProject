@@ -48,10 +48,10 @@ public class UserDto {
         
         private String detailAddress;
 
-        public UserEntity toEntity() {
+        public UserEntity toEntity(String encodedPassword) {
             return UserEntity.builder()
                     .email(email)
-                    .password(password)
+                    .password(encodedPassword)  // 암호화된 비밀번호
                     .phoneNumber(phoneNumber)
                     .nickname(nickname)
                     .name(name)

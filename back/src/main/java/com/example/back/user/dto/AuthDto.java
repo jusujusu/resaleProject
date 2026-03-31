@@ -34,15 +34,4 @@ public class AuthDto {
 
     }
 
-
-    // 재발급시 필요한 refreshToken
-    @Getter
-    @NoArgsConstructor(access = AccessLevel.PROTECTED)
-    @AllArgsConstructor
-    @Builder
-    public static class TokenReissueRequest {
-        @NotBlank(message = "리프레시 토큰은 필수입니다.")
-        private String refreshToken;
-    }
-
 }

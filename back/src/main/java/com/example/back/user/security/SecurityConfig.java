@@ -65,16 +65,33 @@ public class SecurityConfig {
 
                 // 권한 및 경로 설정
                 .authorizeHttpRequests(auth -> auth
+                        // 비인증 허용 - POST API
+                        .requestMatchers(HttpMethod.POST,        // post 방식의 아래 url에 적용
+                                "/api/v1/user",         // 회원 가입
+                                "/api/v1/auth/login",           // 로그인
+                                "/api/v1/auth/logout",          // 로그아웃
+                                "/api/v1/auth/reissue"          // 토큰 재발급
+                        ).permitAll()
+
+                        // 비인증 허용 - Swagger 및 설정 관련
                         .requestMatchers(
-                                HttpMethod.POST, "/api/v1/user",       // 로그인/회원가입
                                 "/v3/api-docs/**",    // Swagger가 만드는 API 명세 데이터 경로
+                                "/api-docs/**",
                                 "/swagger-ui/**",     // Swagger UI 리소스 경로
-                                "/swagger-ui.html"    // Swagger UI 메인 페이지
+                                "/swagger-ui.html",    // Swagger UI 메인 페이지
+                                "/swagger-resources/**",   // Swagger 리소스
+                                "/webjars/**",             // Swagger 웹 자원
+                                "/favicon.ico",  // 파비콘 에러 방지
+                                "/error"         // 에러 페이지 접근 허용
                         ).permitAll() // [비인증 허용] 로그인, 회원가입 등 인증이 필요 없는 API 경로는 모두에게 개방함
+
+                        // [권한 제한] 관리자 전용 기능은 'ADMIN' 역할을 가진 유저만 접근 가능함
                         .requestMatchers(
                                 "/api/admin/**"
-                        ).hasRole("ADMIN")  // [권한 제한] 관리자 전용 기능은 'ADMIN' 역할을 가진 유저만 접근 가능함
-                        .anyRequest().authenticated()   // [인증 필수] 위 설정 외의 모든 요청은 유효한 JWT 토큰이 있어야만 접근 가능 (로그인이 필요함)
+                        ).hasRole("ADMIN")
+
+                        // [인증 필수] 위 설정 외의 모든 요청은 유효한 JWT 토큰이 있어야만 접근 가능 (로그인이 필요함)
+                        .anyRequest().authenticated()
                 )
 
                 // CustomUserDetailsService 시큐리티에 등록

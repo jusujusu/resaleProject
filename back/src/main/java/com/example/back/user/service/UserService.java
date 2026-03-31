@@ -2,13 +2,19 @@ package com.example.back.user.service;
 
 import com.example.back.dto.PageRequestDto;
 import com.example.back.dto.PageResponseDto;
+import com.example.back.user.dto.AuthDto;
 import com.example.back.user.dto.UserDto;
 import com.example.back.user.entity.UserEntity;
 import com.example.back.user.repository.UserRepository;
+import com.example.back.user.security.CustomUserDetails;
+import com.example.back.user.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +36,8 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
 
     /*
@@ -49,11 +57,65 @@ public class UserService {
         }
 
         log.info("회원 가입 요청: {}", request);
-        UserEntity userEntity = request.toEntity();
+
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        UserEntity userEntity = request.toEntity(encodedPassword);
 
         log.info("회원가입 결과: {}", userEntity);
         return userRepository.save(userEntity).getId();
     }
+
+
+    /*
+     * 로그인 및 토큰 생성
+     * */
+    @Transactional
+    public AuthDto.TokenResponse login(UserDto.UserLoginRequest request) {
+
+        // 사용자 확인
+        UserEntity user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("비밀번호가 틀렸습니다.");
+        }
+
+        // 토큰 세트 생성 (Access + Refresh)
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails, null, userDetails.getAuthorities());
+
+        // 토큰 반환
+        return jwtProvider.createTokenSet(authentication);
+    }
+
+
+    /*
+     * 토큰 재발급 (Refresh Token 활용)
+     * */
+    @Transactional
+    public AuthDto.TokenResponse reissue(String refreshToken) {
+
+        // Refresh Token 검증 (만료 여부 및 서명 확인)
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new RuntimeException("유효하지 않거나 만료된 리프레시 토큰입니다.");
+        }
+
+        // 토큰에서 사용자 정보(Authentication) 추출
+        Authentication authentication = jwtProvider.getAuthentication(refreshToken);
+
+        // 유저가 실제로 존재하는지만 체크
+        // Redis 사용 시 Refresh Token과 일치하는지 확인하는 로직으로 변경
+        UserEntity user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 새로운 토큰 세트 생성 및 반환
+        return jwtProvider.createTokenSet(authentication);
+    }
+
 
     /*
      * 이메일로 상세 조회
