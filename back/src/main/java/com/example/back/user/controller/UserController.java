@@ -52,12 +52,13 @@ public class UserController {
     // =========================================================================
 
     /*
-     * [[본인]내 정보 상세 조회
+     * [본인] 내 정보 상세 조회
      * - 토큰에 담긴 본인 정보만 조회 가능
      * */
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<UserDto.UserReadResponse> getMyInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<UserDto.UserReadResponse> getMyInfo(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         log.info("내 정보 조회 요청 - ID: {}", userDetails.getId());
 
@@ -85,7 +86,8 @@ public class UserController {
      * */
     @DeleteMapping("/me")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<Map<String, String>> remove(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Map<String, String>> remove(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("REST 요청 - 회원 탈퇴(Soft Delete) ID: {}", userDetails.getId());
 
         // 삭제 상태값만 변경
@@ -103,7 +105,8 @@ public class UserController {
      * */
     @GetMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserDto.UserReadResponse> getOne(@PathVariable("id") Long id) {
+    public ResponseEntity<UserDto.UserReadResponse> getOne(
+            @PathVariable("id") Long id) {
 
         log.info("REST 요청 - 상세 조회 ID: {}", id);
 
@@ -134,7 +137,8 @@ public class UserController {
      * */
     @DeleteMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> removeHard(@PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, String>> removeHard(
+            @PathVariable("id") Long id) {
         log.info("REST 요청 - 삭제 ID: {}", id);
         userService.remove(id);
 
@@ -158,7 +162,8 @@ public class UserController {
      * */
     @GetMapping("/admin/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PageResponseDto<UserDto.UserListResponse>> getList(PageRequestDto pageRequestDto) {
+    public ResponseEntity<PageResponseDto<UserDto.UserListResponse>> getList(
+            PageRequestDto pageRequestDto) {
 
         log.info("REST 요청 - 페이징 조회: page={}, size={}", 
                 pageRequestDto.getPage(), pageRequestDto.getSize());

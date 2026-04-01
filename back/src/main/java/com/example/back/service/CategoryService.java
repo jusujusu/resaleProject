@@ -95,6 +95,11 @@ public class CategoryService {
 
         CategoryEntity entity = result.orElseThrow(() -> new RuntimeException("삭제할 데이터를 찾을 수 없습니다. ID: " + id));
 
+        // 상품이 있는지 확인
+        if (categoryRepository.hasProducts(id)) {
+            throw new RuntimeException("상품이 있는 카테고리는 삭제할 수 없습니다.");
+        }
+
         categoryRepository.delete(entity);
         log.info("ID {}번 카테고리 삭제 완료", id);
     }

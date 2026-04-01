@@ -4,12 +4,15 @@ import com.example.back.dto.PageRequestDto;
 import com.example.back.dto.PageResponseDto;
 import com.example.back.dto.ProductDto;
 import com.example.back.service.ProductService;
+import com.example.back.user.security.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,20 +35,19 @@ public class ProductController {
 
     /*
      * 상품 등록
-     * 실제 서비스에서는 SecurityContextHolder에서 email을 추출하지만,
-     * 현재는 테스트를 위해 Header나 RequestParam으로 받는다고 가정합니다.
      * */
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Long> register(
             @Valid @RequestPart("productDto") ProductDto.ProductCreateRequest request,
             @RequestPart(value = "files", required = false) java.util.List<MultipartFile> files,
-            @RequestParam String email) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         log.info("REST 요청 - 상품 등록 - 이메일: {}, 데이터: {}, 파일 개수: {}",
-                email, request, (files != null ? files.size() : 0));
+                userDetails.getUsername(), request, (files != null ? files.size() : 0));
 
         // 등록
-        Long id = productService.registerProduct(request, files, email);
+        Long id = productService.registerProduct(request, files, userDetails.getUsername());
 
         // 응답과 생성된 id 전달
         return ResponseEntity
@@ -57,7 +59,8 @@ public class ProductController {
      * 상품 조회
      * */
     @GetMapping({"/{id}"})
-    public ResponseEntity<ProductDto.ProductReadResponse> getOne(@PathVariable("id") Long id) {
+    public ResponseEntity<ProductDto.ProductReadResponse> getOne(
+            @PathVariable("id") Long id) {
 
         log.info("REST 요청 - 상세 조회 ID: {}", id);
 
@@ -67,17 +70,20 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+
     /*
      * 상품 정보 수정
      * */
     @PatchMapping(value = "/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Map<String, String>> modify(
             @PathVariable("id") Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestPart(value = "productDto", required = false) ProductDto.ProductUpdateRequest updateDto,
             @RequestPart(value = "files", required = false) List<MultipartFile> files) {
 
         log.info("REST 요청 - 수정 ID: {}, 데이터: {}", id, updateDto);
-        productService.modify(id, updateDto, files);
+        productService.modify(id, userDetails.getId(), userDetails.getRole(), updateDto, files);
 
         return ResponseEntity.ok(Map.of("result", "success"));
     }
@@ -86,7 +92,9 @@ public class ProductController {
      * 논리적 삭제
      * */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> remove(@PathVariable("id") Long id) {
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Map<String, String>> remove(
+            @PathVariable("id") Long id) {
         log.info("REST 요청 - 상품 삭제(Soft Delete) ID: {}", id);
 
         // 삭제 상태값만 변경
@@ -99,8 +107,10 @@ public class ProductController {
     /*
      * 물리적 삭제
      * */
-    @DeleteMapping("/admin/hard/{id}")
-    public ResponseEntity<Map<String, String>> removeHard(@PathVariable("id") Long id) {
+    @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> removeHard(
+            @PathVariable("id") Long id) {
         log.info("REST 요청 - 삭제 ID: {}", id);
         productService.remove(id);
 
@@ -112,14 +122,14 @@ public class ProductController {
      * 상품 목록 (검색 x)
      * */
     @GetMapping("/list")
-    public ResponseEntity<PageResponseDto<ProductDto.ProductListResponse>> list(PageRequestDto pageRequestDto) {
+    public ResponseEntity<PageResponseDto<ProductDto.ProductListResponse>> list(
+            PageRequestDto pageRequestDto) {
 
         log.info(">>> [목록 조회 요청] Page: {}, Size: {}", pageRequestDto.getPage(), pageRequestDto.getSize());
 
         PageResponseDto<ProductDto.ProductListResponse> response = productService.getListPage(pageRequestDto);
 
         return ResponseEntity.ok(response);
-
     }
 
 }

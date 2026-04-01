@@ -89,7 +89,7 @@ public class SecurityConfig {
     */
     private void configureAuthorization(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                // [누구나 접근 가능]
+                // [공통/인증 API]
                 .requestMatchers(
                         "/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**",
                         "/swagger-ui.html", "/swagger-resources/**", "/webjars/**",
@@ -98,12 +98,21 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()  // 회원가입
                 .requestMatchers("/api/v1/auth/**").permitAll()                // 로그인, 로그아웃, 토큰 재발급
 
-                // [일반 사용자 API - 로그인 인증 필요]
+                // [사용자 API - 로그인 인증 필요]
                 .requestMatchers("/api/v1/user/me").authenticated()
-
                 // [관리자 전용 API - ROLE_ADMIN 권한 필요]
-                // ※ 세부 권한은 컨트롤러의 @PreAuthorize와 2중으로 보호됨
                 .requestMatchers("/api/v1/user/admin/**").hasRole("ADMIN")
+
+                // [카테고리 API]
+                .requestMatchers(HttpMethod.GET, "/api/v1/category").permitAll()    // 목록 조회
+                .requestMatchers(HttpMethod.POST, "/api/v1/category").hasRole("ADMIN") // 카테고리 생성
+                .requestMatchers("/api/v1/category/{id}").hasRole("ADMIN")          // 수정/삭제 등
+
+                // [상품 API]
+                .requestMatchers(HttpMethod.GET, "/api/v1/product/**").permitAll()  // 목록, 상세 정보
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/product/admin/{id}").hasRole("ADMIN") // 물리 삭제
+                .requestMatchers("/api/v1/product/**").authenticated()  // 등록, 수정, 논리 삭제
+
 
                 // [나머지 전체 잠금]
                 .anyRequest().authenticated();

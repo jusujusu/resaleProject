@@ -34,7 +34,7 @@ public class CategoryEntity extends BaseTimeEntity {
     private List<CategoryEntity> children = new ArrayList<>();    // 자식 카테고리
 
 
-    private int sortOrder;  // 정렬 순서
+    private Integer sortOrder;  // 정렬 순서
 
 
     // -------------- 빌더 패턴 --------------
@@ -65,8 +65,8 @@ public class CategoryEntity extends BaseTimeEntity {
     /*
     * 카테고리 수정
     * */
-    public void update(String name, int sortOrder) {
-        this.name = name;
-        this.sortOrder = sortOrder;
+    public void update(String name, Integer sortOrder) {
+        if (name!= null && !name.isBlank()) this.name = name;
+        if (sortOrder != null) this.sortOrder = sortOrder;
     }
 }

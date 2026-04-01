@@ -62,4 +62,11 @@ public class CustomUserDetails implements UserDetails {
     public Long getId() {
         return user.getId();
     }
+
+    /*
+    * 서비스 계층에서 권한을 문자열로 편하게 비교하기 위해 추가
+    * */
+    public String getRole() {
+        return "ROLE_" + user.getRole().name();
+    }
 }

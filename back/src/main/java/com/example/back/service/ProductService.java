@@ -42,12 +42,19 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final FileUtil fileUtil;
 
+    // =========================================================================
+    // [ME 영역] 로그인한 사용자 본인의 자원 (GET, PATCH, DELETE /me)
+    // =========================================================================
+
 
     /*
      * 상품 등록
      * */
     @Transactional
-    public Long registerProduct(ProductDto.ProductCreateRequest request, List<MultipartFile> files, String email) {
+    public Long registerProduct(
+            ProductDto.ProductCreateRequest request,
+            List<MultipartFile> files,
+            String email) {
         log.info("상품 등록 시도 - 작성자 이메일: {}, 상품명: {}", email, request.getTitle());
 
         // 판매자 조회 (추후 로그인한 사용자 값 가져오기로 수정)
@@ -110,7 +117,12 @@ public class ProductService {
      * 상품 수정
      * */
     @Transactional
-    public void modify(Long id, ProductDto.ProductUpdateRequest updateDto, List<MultipartFile> files) {
+    public void modify(
+            Long id,
+            Long currentUserId,
+            String currentUserRole,
+            ProductDto.ProductUpdateRequest updateDto,
+            List<MultipartFile> files) {
 
         log.info(">>> [수정 요청] Product ID: {}, New Title: {}", id, updateDto.getTitle());
 
@@ -119,10 +131,16 @@ public class ProductService {
         // 존재하지 않을 시 예외 처리
         ProductEntity entity = result.orElseThrow(() -> new RuntimeException("수정할 상품을 찾을 수 없습니다. ID: " + id));
 
+        // 권한 검증 (Admin 아니면서 id와 sellerId 불일치 시)
+        if (!currentUserRole.equals("ROLE_ADMIN") && !entity.getSeller().getId().equals(currentUserId)) {
+            log.warn(">>> [권한 부족] UserID: {}, currentUserRole: {} 가 ProductID: {} 수정 시도", currentUserId, currentUserRole, entity.getTitle());
+            throw new RuntimeException("해당 상품을 수정할 권한이 없습니다.");
+        }
+
         // 텍스트 부분 수정 비즈니스 로직 (DTO가 존재 할 경우에만)
         if (updateDto != null) {
             String newTitle = (updateDto.getTitle() != null) ? updateDto.getTitle() : entity.getTitle();
-            String newContent = (updateDto.getContent() != null) ? updateDto.getTitle() : entity.getContent();
+            String newContent = (updateDto.getContent() != null) ? updateDto.getContent() : entity.getContent();
             Integer newPrice = (updateDto.getPrice() != null) ? updateDto.getPrice() : entity.getPrice();
 
             entity.updateProduct(newTitle, newContent, newPrice);
@@ -198,7 +216,8 @@ public class ProductService {
     /*
      * 상품 목록 (검색x)
      * */
-    public PageResponseDto<ProductDto.ProductListResponse> getListPage(PageRequestDto requestDto) {
+    public PageResponseDto<ProductDto.ProductListResponse> getListPage(
+            PageRequestDto requestDto) {
         Pageable pageable = requestDto.getPageable("id");
         Page<ProductEntity> result = productRepository.findAllWithFetch(pageable);
         return convertToPageResponse(result);

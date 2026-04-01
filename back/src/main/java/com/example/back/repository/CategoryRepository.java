@@ -26,4 +26,10 @@ public interface CategoryRepository extends JpaRepository<CategoryEntity, Long> 
     * */
     @Query("SELECT c FROM CategoryEntity c WHERE c.parent.id = :parentId ORDER BY c.sortOrder ASC")
     List<CategoryEntity> findChildrenByParentId(@Param("parentId") Long parentId);
+
+    /*
+    * 카테고리에 연결된 상품이 있는지 확인
+    * */
+    @Query("SELECT COUNT(p) > 0 FROM ProductEntity p WHERE p.category.id = :categoryId")
+    boolean hasProducts(@Param("categoryId") Long categoryId);
 }
