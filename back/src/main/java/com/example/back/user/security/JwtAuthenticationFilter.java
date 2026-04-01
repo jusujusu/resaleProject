@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
@@ -17,6 +18,7 @@ import java.io.IOException;
  * Since       : 26. 3. 30.
  * Dsecription  : 요청 헤더의 JWT를 검사하여 인증 정보를 등록하는 필터
  */
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -32,9 +34,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         // 토큰이 유효한지 확인하고, 유효하면 인증 정보를 SecurityContext에 저장
-        if (token != null && jwtProvider.validateToken(token)) {
-            Authentication authentication = jwtProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (token != null) {
+            log.debug("추출된 토큰 발견: {}", token.substring(0, 10) + "...");
+
+            if (jwtProvider.validateToken(token)) {
+                Authentication authentication = jwtProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("SecurityContext에 인증 정보 저장 완료: {}", authentication.getName());
+            } else {
+                log.warn("토큰이 유효하지 않습니다.");
+            }
         }
 
         // 다음 필터 진행

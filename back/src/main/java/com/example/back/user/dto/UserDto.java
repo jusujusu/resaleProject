@@ -69,16 +69,12 @@ public class UserDto {
     @NoArgsConstructor(access = AccessLevel.PROTECTED)
     @ToString
     public static class UserUpdateRequest {
-        @NotBlank(message = "닉네임을 입력해주세요.")
         private String nickname;
         
-        @NotBlank(message = "주소를 입력해주세요.")
         private String address;
         
         private String detailAddress;
         
-        @NotBlank(message = "전화번호를 입력해주세요.")
-        @Pattern(regexp = "^[0-9]+$", message = "전화번호는 숫자만 입력 가능합니다.")
         private String phoneNumber;
     }
 

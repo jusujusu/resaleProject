@@ -118,7 +118,7 @@ public class UserService {
 
 
     /*
-     * 이메일로 상세 조회
+     * 이메일로 회원 정보 조회
      * */
     public UserDto.UserReadResponse getOne(String email) {
 

@@ -64,6 +64,8 @@ public class JwtProvider {
         // DB에서 유저 정보 로드 (CustomUserDetails 반환)
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
+        log.info("!!!!!!!userDetails.getAuthorities() : {}", userDetails.getAuthorities());
+
         // 시큐리티용 인증 토큰 생성 (비밀번호는 이미 토큰으로 인증되었으므로 null)
         return new UsernamePasswordAuthenticationToken(
                 userDetails,

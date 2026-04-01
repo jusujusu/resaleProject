@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -64,35 +65,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 // 권한 및 경로 설정
-                .authorizeHttpRequests(auth -> auth
-                        // 비인증 허용 - POST API
-                        .requestMatchers(HttpMethod.POST,        // post 방식의 아래 url에 적용
-                                "/api/v1/user",         // 회원 가입
-                                "/api/v1/auth/login",           // 로그인
-                                "/api/v1/auth/logout",          // 로그아웃
-                                "/api/v1/auth/reissue"          // 토큰 재발급
-                        ).permitAll()
-
-                        // 비인증 허용 - Swagger 및 설정 관련
-                        .requestMatchers(
-                                "/v3/api-docs/**",    // Swagger가 만드는 API 명세 데이터 경로
-                                "/api-docs/**",
-                                "/swagger-ui/**",     // Swagger UI 리소스 경로
-                                "/swagger-ui.html",    // Swagger UI 메인 페이지
-                                "/swagger-resources/**",   // Swagger 리소스
-                                "/webjars/**",             // Swagger 웹 자원
-                                "/favicon.ico",  // 파비콘 에러 방지
-                                "/error"         // 에러 페이지 접근 허용
-                        ).permitAll() // [비인증 허용] 로그인, 회원가입 등 인증이 필요 없는 API 경로는 모두에게 개방함
-
-                        // [권한 제한] 관리자 전용 기능은 'ADMIN' 역할을 가진 유저만 접근 가능함
-                        .requestMatchers(
-                                "/api/admin/**"
-                        ).hasRole("ADMIN")
-
-                        // [인증 필수] 위 설정 외의 모든 요청은 유효한 JWT 토큰이 있어야만 접근 가능 (로그인이 필요함)
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(this::configureAuthorization)
 
                 // CustomUserDetailsService 시큐리티에 등록
                 .userDetailsService(customUserDetailsService)
@@ -100,9 +73,40 @@ public class SecurityConfig {
                 // JWT 필터를 시큐리티 인증 필터 앞에 추가
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
-
-
-
         return http.build();
     }
+
+
+
+    /*
+    * [상세 권한 및 경로 설정]
+    * - 구체적인 경로가 일반적인 경로보다 먼저 와야 함
+    *
+    * [경로 구체성 예시]
+    * /api/v1/user/me      ← 구체적 (먼저)
+    * /api/v1/user/{id}    ← 중간
+    * /api/v1/user/**      ← 일반적 (나중)
+    */
+    private void configureAuthorization(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
+        auth
+                // [누구나 접근 가능]
+                .requestMatchers(
+                        "/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**",
+                        "/swagger-ui.html", "/swagger-resources/**", "/webjars/**",
+                        "/favicon.ico", "/error"                                        // swagger 관련
+                ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()  // 회원가입
+                .requestMatchers("/api/v1/auth/**").permitAll()                // 로그인, 로그아웃, 토큰 재발급
+
+                // [일반 사용자 API - 로그인 인증 필요]
+                .requestMatchers("/api/v1/user/me").authenticated()
+
+                // [관리자 전용 API - ROLE_ADMIN 권한 필요]
+                // ※ 세부 권한은 컨트롤러의 @PreAuthorize와 2중으로 보호됨
+                .requestMatchers("/api/v1/user/admin/**").hasRole("ADMIN")
+
+                // [나머지 전체 잠금]
+                .anyRequest().authenticated();
+    }
+
 }

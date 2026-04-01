@@ -65,13 +65,13 @@ public class UserEntity extends BaseTimeEntity {
 
     // -------------- 비즈니스 로직 --------------
     /*
-    * 회원 정보 수정
+    * 회원 정보 수정 (patch 방식을 사용하기 때문에 아래처럼 작성)
     * */
     public void updateProfile(String nickname, String address, String detailAddress, String phoneNumber) {
-        this.nickname = nickname;
-        this.address = address;
-        this.detailAddress = detailAddress;
-        this.phoneNumber = phoneNumber;
+        if (nickname != null && !nickname.trim().isEmpty()) {this.nickname = nickname;}
+        if (address != null && !address.trim().isEmpty()) {this.address = address;}
+        if (detailAddress != null) {this.detailAddress = detailAddress;}
+        if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {this.phoneNumber = phoneNumber;}
     }
 
     /*
