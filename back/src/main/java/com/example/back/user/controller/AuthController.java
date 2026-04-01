@@ -39,8 +39,6 @@ public class AuthController {
         // 토큰 생성
         AuthDto.TokenResponse tokenResponse = userService.login(loginRequest);
 
-        log.info("!!AccessToken 쿠키 생성 : {}", tokenResponse.getAccessToken());
-        log.info("!!RefreshToken 쿠키 생성 : {}", tokenResponse.getRefreshToken());
 
         // RefreshToken을 HttpOnly 쿠키로 생성
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokenResponse.getRefreshToken())
@@ -54,7 +52,6 @@ public class AuthController {
         // 응답 헤더에 쿠키 추가
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
-
         // AccessToken만 포함된 객체를 반환
         return ResponseEntity.ok(tokenResponse);
     }
@@ -64,7 +61,16 @@ public class AuthController {
      * 로그아웃
      * */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "refreshToken", required = false)String refreshToken,
+            HttpServletResponse response) {
+
+        log.info(">>> [로그아웃 요청]");
+
+        // Redis에서 토큰 삭제
+        if (refreshToken != null) {
+            userService.logout(refreshToken);
+        }
 
         // 쿠키를 즉시 만료시킴
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
@@ -75,6 +81,7 @@ public class AuthController {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.noContent().build();
     }
 
@@ -87,13 +94,10 @@ public class AuthController {
             @CookieValue(name = "refreshToken") String refreshToken,
             HttpServletResponse response) {
 
-        // TODO Redis를 사용해서 토큰 저장 시 기존 토큰 삭제 하고 새 토큰으로 교환하는 로직 작성 필요
+        log.info(">>> [재발급 요청]");
 
         // 서비스에서 검증 및 재발급 로직 수행
         AuthDto.TokenResponse newTokenSet = userService.reissue(refreshToken);
-
-        log.info("!!AccessToken 쿠키 생성 : {}", newTokenSet.getAccessToken());
-        log.info("!!RefreshToken 쿠키 생성 : {}", newTokenSet.getRefreshToken());
 
         // 새 RefreshToken 쿠키 설정 (Rotation 적용 시)
         ResponseCookie cookie = ResponseCookie.from("refreshToken", newTokenSet.getRefreshToken())
@@ -103,8 +107,9 @@ public class AuthController {
                 .maxAge(7 * 24 * 60 * 60)
                 .build();
 
-
+        // 응답 헤더에 쿠키 추가
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return ResponseEntity.ok(newTokenSet);
     }
 }

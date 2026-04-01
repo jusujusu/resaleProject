@@ -2,6 +2,7 @@ package com.example.back.user.service;
 
 import com.example.back.dto.PageRequestDto;
 import com.example.back.dto.PageResponseDto;
+import com.example.back.service.RedisService;
 import com.example.back.user.dto.AuthDto;
 import com.example.back.user.dto.UserDto;
 import com.example.back.user.entity.UserEntity;
@@ -10,6 +11,7 @@ import com.example.back.user.security.CustomUserDetails;
 import com.example.back.user.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,7 +41,11 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
+
+    @Value("${jwt.refresh-expiration-ms}")
+    private long refreshExpirationMs;
 
     /*
     * 회원 가입
@@ -87,14 +94,44 @@ public class UserService {
         CustomUserDetails userDetails = new CustomUserDetails(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, null, userDetails.getAuthorities());
+        AuthDto.TokenResponse tokenResponse = jwtProvider.createTokenSet(authentication);
+
+        // Redis에 RefreshToken 저장
+        redisService.setValues(
+                "RT:" + request.getEmail(),
+                tokenResponse.getRefreshToken(),
+                Duration.ofMillis(refreshExpirationMs)
+        );
+        log.info(">>> [Redis 저장 완료] Key: RT:{}, value: {}, 만료시간: {}", user.getEmail(), tokenResponse.getRefreshToken(), refreshExpirationMs);
+        log.info("저장된 리프레쉬 토큰 : {}", redisService.getValues("RT:" + request.getEmail()));
 
         // 토큰 반환
-        return jwtProvider.createTokenSet(authentication);
+        return tokenResponse;
     }
 
 
     /*
-     * 토큰 재발급 (Refresh Token 활용)
+     * 로그아웃 (Redis 토큰 삭제)
+     * */
+    @Transactional
+    public void logout(String refreshToken) {
+        // Refresh Token 검증 (만료 여부 및 서명 확인)
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new RuntimeException("유효하지 않거나 만료된 리프레시 토큰입니다.");
+        }
+
+        // 토큰에서 사용자 이메일 추출
+        String email = jwtProvider.getUsername(refreshToken);
+
+        // Redis에 저장된 해당 유저의 RefreshToken 삭제
+        redisService.deleteValues("RT:" + email);
+
+        log.info(">>> [로그아웃 완료] Redis 토큰 삭제 완료 - Email: {}", email);
+    }
+
+
+    /*
+     * 토큰 재발급 (Redis 검증 및 RTR 적용)
      * */
     @Transactional
     public AuthDto.TokenResponse reissue(String refreshToken) {
@@ -104,16 +141,32 @@ public class UserService {
             throw new RuntimeException("유효하지 않거나 만료된 리프레시 토큰입니다.");
         }
 
+        // 토큰에서 사용자 이메일 추출
+        String email = jwtProvider.getUsername(refreshToken);
+
+        // Redis에서 저장된 토큰 가져오기
+        String savedRefreshToken = redisService.getValues("RT:" + email);
+
+        // Redis에 토큰이 없거나, 보낸 토큰과 일치하지 않으면 차단
+        if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken)) {
+            throw new RuntimeException("로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.");
+        }
+
         // 토큰에서 사용자 정보(Authentication) 추출
         Authentication authentication = jwtProvider.getAuthentication(refreshToken);
+        // 새로운 토큰 세트 생성
+        AuthDto.TokenResponse newTokenSet = jwtProvider.createTokenSet(authentication);
 
-        // 유저가 실제로 존재하는지만 체크
-        // Redis 사용 시 Refresh Token과 일치하는지 확인하는 로직으로 변경
-        UserEntity user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        // Redis 토큰 갱신
+        redisService.setValues(
+                "RT:" + email,
+                newTokenSet.getRefreshToken(),
+                Duration.ofMillis(refreshExpirationMs)
+        );
+        log.info("저장된 리프레쉬 토큰 : {}", redisService.getValues("RT:" + email));
 
         // 새로운 토큰 세트 생성 및 반환
-        return jwtProvider.createTokenSet(authentication);
+        return newTokenSet;
     }
 
 
