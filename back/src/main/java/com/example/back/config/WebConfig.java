@@ -34,6 +34,12 @@ public class WebConfig implements WebMvcConfigurer {
                 .exposedHeaders("Authorization")
                 .maxAge(3600);              // 브라우저가 preflight 요청을 캐싱하는 시간 (초)
 
+        // 이미지 경로에도 CORS 허용
+        registry.addMapping("/images/**")
+                .allowedOrigins("http://localhost:5173")
+                .allowedMethods("GET", "OPTIONS")
+                .allowedHeaders("*");
+
     }
 
 

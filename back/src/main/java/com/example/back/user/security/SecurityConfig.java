@@ -93,7 +93,8 @@ public class SecurityConfig {
                 .requestMatchers(
                         "/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**",
                         "/swagger-ui.html", "/swagger-resources/**", "/webjars/**",
-                        "/favicon.ico", "/error"                                        // swagger 관련
+                        "/favicon.ico", "/error",                                      // swagger 관련
+                        "/images/**"                                                   // 이미지 파일 접근 허용
                 ).permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/user").permitAll()  // 회원가입
                 .requestMatchers("/api/v1/auth/**").permitAll()                // 로그인, 로그아웃, 토큰 재발급
