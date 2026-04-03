@@ -1,17 +1,14 @@
 import './App.css'
-import Test from './component/Test'
-import Category from './component/Category'
+import { RouterProvider } from 'react-router-dom';
+import root from './routers/root';
 
 
 function App() {
 
   return (
-    <div style={{ padding: '20px' }}>
-      <Category />
-      <hr />
-      <Test/>
-    </div>
-  )
+      // RouterProvider에 만든 설정을 전달하여 앱에 라우터 적용
+      <RouterProvider router={root} />
+  );
 }
 
 export default App

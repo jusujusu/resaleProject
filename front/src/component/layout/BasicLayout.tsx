@@ -1,0 +1,31 @@
+import { Outlet } from 'react-router-dom';
+
+
+const BasicLayout = () => {
+  return (
+      <div className="min-h-screen flex flex-col">
+          {/* 1. 공통 헤더 영역 */}
+          <header className="bg-blue-500 text-white p-4">
+              <nav>
+                  <ul className="flex gap-4">
+                      <li>홈</li>
+                      <li>회원가입</li>
+                  </ul>
+              </nav>
+          </header>
+
+          {/* 2. 실제 페이지 내용이 갈아 끼워지는 영역 */}
+          <main className="flex-grow p-6">
+              {/* Outlet은 자식 라우트(MainPage 등)가 렌더링되는 지점입니다. */}
+              <Outlet />
+          </main>
+
+          {/* 3. 공통 푸터 영역 */}
+          <footer className="bg-gray-200 p-4 text-center">
+              © 2026 My Project. All rights reserved.
+          </footer>
+      </div>
+  );
+}
+
+export default BasicLayout
