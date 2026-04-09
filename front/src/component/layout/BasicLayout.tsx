@@ -8,8 +8,7 @@ const BasicLayout = () => {
           <header className="bg-blue-500 text-white p-4">
               <nav>
                   <ul className="flex gap-4">
-                      <li>홈</li>
-                      <li>회원가입</li>
+                      <li>공통 헤더</li>
                   </ul>
               </nav>
           </header>
@@ -22,7 +21,7 @@ const BasicLayout = () => {
 
           {/* 3. 공통 푸터 영역 */}
           <footer className="bg-gray-200 p-4 text-center">
-              © 2026 My Project. All rights reserved.
+             공통 푸터
           </footer>
       </div>
   );

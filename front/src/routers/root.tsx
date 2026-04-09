@@ -12,6 +12,8 @@
 import { createBrowserRouter } from "react-router-dom"
 import BasicLayout from "../component/layout/BasicLayout"
 import MainPage from "../pages/MainPage";
+import Test from "../pages/Test";
+import LoginPage from "../pages/Login";
 
 
 const root = createBrowserRouter([
@@ -23,6 +25,15 @@ const root = createBrowserRouter([
                 // "" 로 접속시 메인 페이지로 이동
                 index: true,
                 element: <MainPage />,
+            },
+            {
+                path: 'login',
+                element: <LoginPage />,
+            },
+            {
+                // TODO 예시 페이지 이므로 나중에 삭제
+                path: 'test',
+                element: <Test />,
             },
         ],
     },
