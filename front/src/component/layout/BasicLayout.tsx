@@ -1,7 +1,20 @@
 import { Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { reissueToken } from '../../store/slices/authSlice';
+import type { RootState } from '../../store/index';
 
 
 const BasicLayout = () => {
+  const dispatch = useDispatch();
+  const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    // accessToken이 없더라도 refreshToken cookie
+    if (!isAuthenticated && !isLoading) {
+      dispatch(reissueToken() as any);
+    }
+  }, [dispatch, isAuthenticated, isLoading]);
   return (
       <div className="min-h-screen flex flex-col">
           {/* 1. 공통 헤더 영역 */}

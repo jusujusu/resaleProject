@@ -55,9 +55,6 @@ export const reissueToken = createAsyncThunk(
             const response = await authApi.post('/v1/auth/reissue');
             const { accessToken } = response.data;
             
-            // 전역 헤더에 토큰 주입
-            authApi.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            
             // 유저 정보 가져오기 호출
             dispatch(fetchUserInfo());
             
@@ -67,6 +64,7 @@ export const reissueToken = createAsyncThunk(
         }
     }
 );
+
 
 /* 
 [비동기 Thunk] 로그인한 사용자의 정보
@@ -84,25 +82,8 @@ export const fetchUserInfo = createAsyncThunk(
         }
     },
 );
-/* export const fetchUserInfo = createAsyncThunk(
-    'auth/fetchUserInfo',
-    async (_, thunkAPI) => {
-        try {
-            // /api/v1/users/me 엔드포인트로 본인 정보 요청
-            const response = await authApi.get('/v1/users/me');
-            return response.data;
-        } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                const message =
-                    error.response?.data?.message ||
-                    '사용자 정보를 가져오는데 실패했습니다.';
-                return thunkAPI.rejectWithValue(message);
-            }
-            // Axios 에러가 아닌 일반 에러 처리
-            return thunkAPI.rejectWithValue('네트워크 연결이 원활하지 않습니다.');
-        }
-    },
-); */
+
+
 
 /* 
 [비동기 Thunk] 로그인
@@ -114,11 +95,6 @@ export const loginUser = createAsyncThunk(
         try {
             // 서버의 /login 엔드포인트로 POST 요청 전송
             const response = await authApi.post('/v1/auth/login', loginData);
-            const { accessToken } = response.data;
-
-            // 로그인 성공 시 Axios 전역 공통 헤더에 토큰 주입
-            // accessToken을 필요로 하는 api에 헤더를 추가 작성할 필요 없음
-            authApi.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
             // 로그인 성공 후 사용자 정보 가져오기
             thunkAPI.dispatch(fetchUserInfo());
@@ -159,8 +135,6 @@ const authSlice = createSlice({
             state.user = null;
             state.isAuthenticated = false;
             state.error = null;
-            // Axios 헤더에서 토큰 제거
-            delete authApi.defaults.headers.common['Authorization'];
         },
 
         /* 
@@ -169,7 +143,6 @@ const authSlice = createSlice({
         */
         updateToken: (state, action: PayloadAction<string>) => {
             state.accessToken = action.payload;
-            authApi.defaults.headers.common['Authorization'] = `Bearer ${action.payload}`;
         },
     },
 

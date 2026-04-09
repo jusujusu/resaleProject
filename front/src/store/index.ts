@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { logger } from 'redux-logger';
 import authReducer from './slices/authSlice';
+import { injectStore } from '../apis';
 
 
 
@@ -31,6 +32,9 @@ export const store = configureStore({
         return middleware;
     },
 });
+
+// 스토어 생성 직후 주입
+injectStore(store);
 
 // RootState: 스토어의 전체 상태 타입을 추출 (useAppSelector에서 사용)
 export type RootState = ReturnType<typeof store.getState>;
